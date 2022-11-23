@@ -1,2 +1,10 @@
+# local ppackage install
+ -e.
+
+ # third party packages
+
 pytest 
 tox
+pandas
+numpy
+scikit-learn
