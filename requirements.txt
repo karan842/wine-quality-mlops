@@ -8,3 +8,6 @@ tox
 pandas
 numpy
 scikit-learn
+flake8
+flask
+gunicorn
