@@ -1,13 +1,81 @@
 import pytest
+import json
+import os
+import joblib 
+from predictive_service.prediction import form_response, api_response
+import predictive_service
 
-class NotInRangeError(Exception):
-    def __init__(self,message="Value not in range"):
-        # self.inputs = input
-        self.message = message
-        super().__init__(self.message)
 
-def test_generic():
-    a = 50
-    with pytest.raises(NotInRangeError):
-        if a not in range(10,20):
-            raise NotInRangeError
+input_data = {
+    "incorrect_range":
+        {
+            "fixed_acidity":7898745,
+            "volatile_acidity": 555,
+            "citric_acid":99,
+            "residual_sugar": 99,
+            "chlorides":12,
+            "free_sulfur_dioxide":789,
+            "total_sulfur_dioxide":75,
+            "density":2,
+            "pH":33,
+            "sulphates":9,
+            "alcohol":9
+        },
+    "correct_range":
+        {
+            "fixed_acidity":5,
+            "volatile_acidity": 1,
+            "citric_acid":0.5,
+            "residual_sugar":10,
+            "chlorides":0.5,
+            "free_sulfur_dioxide":3,
+            "total_sulfur_dioxide":75,
+            "density":1,
+            "pH":3,
+            "sulphates":1,
+            "alcohol":9
+        },
+    "incorrect_col":
+        {
+            "fixed acidity": 5, 
+            "volatile acidity": 1, 
+            "citric acid": 0.5, 
+            "residual sugar": 10, 
+            "chlorides": 0.5, 
+            "free sulfur dioxide": 3, 
+            "total_sulfur dioxide": 75, 
+            "density": 1, 
+            "pH": 3, 
+            "sulphates": 1, 
+            "alcohol": 9
+        }
+}
+
+TARGET_RANGE = {
+    "min":3.0,
+    "max":8.0
+}
+
+## Testing functions
+
+def test_form_response_correct_range(data=input_data["correct_range"]):
+    res = form_response(data)
+    assert TARGET_RANGE["min"] <= res <= TARGET_RANGE["max"]
+    
+def test_api_response_correct_range(data=input_data["correct_range"]):
+    res = api_response(data)
+    assert  TARGET_RANGE["min"] <= res["response"] <= TARGET_RANGE["max"]
+    
+def test_form_response_incorrect_range(data=input_data["incorrect_range"]):
+    with pytest.raises(predictive_service.prediction.NotInRange):
+        res = form_response(data)
+    
+def test_api_response_incorrect_range(data=input_data["incorrect_range"]):
+    res = api_response(data)
+    assert res["response"] == predictive_service.prediction.NotInRange().message
+    
+def test_api_response_incorrect_col(data=input_data["incorrect_col"]):
+    res = api_response(data)
+    assert res["response"] == predictive_service.prediction.NotInCols().message
+    
+    
